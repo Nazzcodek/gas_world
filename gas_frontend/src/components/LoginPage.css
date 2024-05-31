@@ -1,0 +1,91 @@
+@import url('https://fonts.cdnfonts.com/css/graphik-trial');
+
+body {
+    font-family: 'Graphik Compact Trial', sans-serif;
+    /* background-color: #1E1E1E; */
+  }
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-form {
+    width: 400px;
+    border: 1px solid rgb(2, 71, 2);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.centered-content {
+    text-align: center;
+}
+
+.login-form .ant-form-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.login-form .ant-form-item-label {
+    width: 100px;
+}
+
+.login-form .ant-input {
+    width: 300px;
+}
+
+.ant-radio-button-wrapper {
+    color: rgb(2, 71, 2); 
+}
+
+
+.ant-radio-button-wrapper:hover {
+    background-color: #E8E8E8;
+    color: #000000;
+}
+.ant-radio-button-wrapper-checked {
+    background-color: rgb(2, 71, 2) !important;
+    color: #E8E8E8 !important;
+  }
+.ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+}
+
+.ant-radio-button-wrapper:focus-within {
+    background-color: rgb(2, 71, 2);
+    color: #E8E8E8;
+}
+.ant-radio-button-wrapper:focus-within:hover {
+    background-color: #E8E8E8 !important;
+    color: #000000 !important;
+}
+
+.ant-btn-primary {
+    background-color: rgb(2, 71, 2);
+    border-color: #4D4D4D;
+}
+
+.ant-btn-primary:hover {
+    background-color: #048104 !important; 
+    border-color: #E8E8E8; 
+}
+
+
+.ant-btn-primary:focus {
+    background-color:#024702;
+    border-color: #E8E8E8;
+}
+
+/* Change the border color of the password box on hover */
+.input-box:hover {
+    border-color:  rgb(11, 243, 11) !important; /* Change this to your desired color */
+}
+
+/* Change the border color of the password box on focus */
+.input-box {
+    border-color: #4D4D4D !important; /* Change this to your desired color */
+    box-shadow: none !important; /* Change this to match your desired color */
+}

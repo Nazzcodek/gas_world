@@ -1,0 +1,35 @@
+@import url('https://fonts.cdnfonts.com/css/graphik-trial');
+
+body {
+    font-family: 'Graphik Compact Trial', sans-serif;
+    /* background-color: #1E1E1E; */
+  }
+
+.sider {
+    background-color: #f8f8f8 !important;
+    border: 1px solid #024702 !important;
+    color: #024702 !important;
+}
+
+.sider-menu {
+    margin-top: 30px;
+    background-color: #f8f8f8 !important;
+    color: #024702 !important;
+}
+
+.sider-menu .ant-menu-item-selected {
+    background-color: #024702 !important;
+    color: #FFFFFF !important;
+    margin: 10px;
+  }
+  
+  .sider-menu .ant-menu-item:hover {
+    background-color: #FFFFFF !important;
+    color: #024702 !important;
+    border: 1px solid #024702;
+  }
+  
+  .sider-menu .ant-menu-item:focus {
+    background-color: #024702 !important;
+    color: #FFFFFF !important;
+  }
