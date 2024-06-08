@@ -9,6 +9,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
+from rest_framework_simplejwt.views import TokenRefreshView
+from service.token_utils import set_tokens_and_response
+from django.contrib.auth import get_user_model
+
 
 class CustomAuthBackend(ModelBackend):
     def authenticate(self, request, email=None, password=None, **kwargs):
@@ -34,7 +38,8 @@ class CustomAuthBackend(ModelBackend):
             pass
 
         return None
-    
+
+
 class CookieTokenMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -48,6 +53,25 @@ class CookieTokenMiddleware:
             request.META['HTTP_X_CSRFTOKEN'] = csrftoken
         response = self.get_response(request)
         return response
+    
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        refresh_token = request.data.get('refresh')
+        
+        if response.status_code == 200 and refresh_token:
+            # Decode the refresh token to get the user
+            refresh = RefreshToken(refresh_token)
+            user_id = refresh.payload.get('user_id')
+            User = get_user_model()
+            user = User.objects.get(id=user_id)
+            # Use the function to set cookies and return response
+            return set_tokens_and_response(request, user, refresh)
+        
+        return response
+
 
 
 class LogoutView(APIView):

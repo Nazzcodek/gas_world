@@ -103,7 +103,7 @@ const ManagerManagement = () => {
 
     const renderManagerInfo = (station) => (
         <>
-            <Descriptions title="Manager Info" bordered>
+            <Descriptions title="Manager Info" bordered column={2}>
                 {station.manager ? (
                     <>
                         <Descriptions.Item label="Name">{station.manager.name}</Descriptions.Item>

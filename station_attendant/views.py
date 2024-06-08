@@ -1,5 +1,4 @@
 from django.core.cache import cache
-from django.http import HttpResponse
 from rest_framework import viewsets, status, permissions
 from station_attendant.models import Attendant
 from station_attendant.serializers import AttendantSerializer, AttendantCreateSerializer, AttendantTokenObtainPairSerializer
@@ -10,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework.exceptions import PermissionDenied
 from product.models import PumpReading
+from service.token_utils import set_tokens_and_response
 
 
 class AttendantViewSet(viewsets.ModelViewSet):
@@ -64,7 +64,6 @@ class AttendantLoginView(TokenObtainPairView):
         
         # Retrieve the authenticated user
         user = serializer.validated_data['user']
-        name = user.name
         
         if user.is_attendant:
             refresh = RefreshToken.for_user(user)
@@ -77,23 +76,8 @@ class AttendantLoginView(TokenObtainPairView):
             pump_reading_ids = [pr.id for pr in pump_readings]
             cache.set(f"attendant_{user.id}_pump_readings", pump_reading_ids, timeout=3600)
 
-            response = HttpResponse()
-
-            response.set_cookie(
-                'access', 
-                str(refresh.access_token), 
-                httponly=True, 
-                secure=False,  # Only set this if you're using HTTPS
-                samesite='Lax'
-            )
-
-            response = Response({
-                'name': name,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-
-            return response
+            return set_tokens_and_response(request, user, refresh)
+            
         else:
             return Response({
                 "detail": "User is not an attendant."

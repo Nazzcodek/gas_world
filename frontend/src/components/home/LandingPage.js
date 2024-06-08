@@ -1,39 +1,37 @@
 import React from 'react';
-import { Layout, Menu, Button, Row, Col, Typography, Card } from 'antd';
-import { LoginOutlined, UserAddOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
+import { Layout, Button, Row, Col, Typography, Card, Form, Input } from 'antd';
 import { motion } from 'framer-motion';
 import './HomeStyle.css';
+import NavBar from './NavBar';
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 const { Title, Paragraph } = Typography;
 
 const LandingPage = () => {
+
   return (
     <Layout className="layout">
-      <Header>
-        <div className="logo">Gas Station Management</div>
-        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['home']}>
-          <Menu.Item key="home">Home</Menu.Item>
-          <Menu.Item key="blog">Blog</Menu.Item>
-          <Menu.Item key="about">About Us</Menu.Item>
-          <Menu.Item key="contact">Contact</Menu.Item>
-          <Menu.Item key="login" icon={<LoginOutlined />}>Login</Menu.Item>
-          <Menu.Item key="signup" icon={<UserAddOutlined />}>Sign Up</Menu.Item>
-        </Menu>
+      <Header style={{ backgroundColor: 'white' }}>
+        <NavBar />
       </Header>
       <Content style={{ padding: '0 50px' }}>
         <div className="site-layout-content">
           <Row justify="center" align="middle" className="hero-section">
             <Col span={12}>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
-                <Title style={{ color: '#024702' }}>Manage Your Gas Stations Effortlessly</Title>
-                <Paragraph style={{ color: '#024702' }}>
-                  With our app, you can oversee the affairs of all your stations, manage staff, monitor product stock, and more—all from a single platform.
-                </Paragraph>
-                <Button type="primary" size="large" style={{ backgroundColor: '#024702', borderColor: '#024702' }}>
-                  Get Started
-                </Button>
-              </motion.div>
+              <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '20px', borderRadius: '10px' }}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+                  <Title style={{ color: '#024702' }}>Manage Your Gas Stations Effortlessly</Title>
+                  <Paragraph style={{ color: '#024702', fontSize: '18px' }}>
+                    With our app, you can oversee the affairs of all your stations, manage staff, monitor product stock, and more—all from a single platform.
+                  </Paragraph>
+                  <Link to="/signup">
+                    <Button type="primary" size="large" style={{ backgroundColor: '#024702', borderColor: '#024702' }}>
+                      Get Started
+                    </Button>
+                  </Link>
+                </motion.div>
+              </div>
             </Col>
           </Row>
           <Row gutter={16} className="product-section">
@@ -82,9 +80,76 @@ const LandingPage = () => {
               </motion.div>
             </Col>
           </Row>
+          <div id="about" className="about-section">
+            <Row align="middle">
+              <Col span={12}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+                  <Title>About Us</Title>
+                  <Paragraph style={{ fontSize: '18px' }}>
+                    We are committed to providing the best service in managing gas stations, offering innovative solutions to make your operations smooth and efficient.
+                  </Paragraph>
+                  <Title level={3}>Our Vision</Title>
+                  <Paragraph style={{ fontSize: '18px' }}>
+                    To revolutionize the gas station management industry through innovative and efficient solutions, ensuring optimal performance and customer satisfaction.
+                  </Paragraph>
+                  <Title level={3}>Our Mission</Title>
+                  <Paragraph style={{ fontSize: '18px' }}>
+                    Our mission is to provide comprehensive management tools that enable gas station owners to streamline operations, enhance productivity, and deliver exceptional service.
+                  </Paragraph>
+                </motion.div>
+              </Col>
+              <Col span={12}>
+                <motion.img
+                  src="https://source.unsplash.com/800x600/?business"
+                  alt="About Us"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1 }}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+              </Col>
+            </Row>
+          </div>
+          <div id="contact" className="contact-section">
+            <Row align="middle">
+              <Col span={12}>
+                <motion.img
+                  src="https://source.unsplash.com/800x600/?contact"
+                  alt="Contact Us"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1 }}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+              </Col>
+              <Col span={12}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+                  <Title>Contact Us</Title>
+                  <Paragraph style={{ fontSize: '18px' }}>
+                    If you have any questions or need support, feel free to reach out to us.
+                  </Paragraph>
+                  <Form layout="vertical">
+                    <Form.Item label="Name">
+                      <Input placeholder="Your Name" />
+                    </Form.Item>
+                    <Form.Item label="Email">
+                      <Input placeholder="Your Email" />
+                    </Form.Item>
+                    <Form.Item label="Message">
+                      <Input.TextArea rows={4} placeholder="Your Message" />
+                    </Form.Item>
+                    <Form.Item>
+                      <Button type="primary" htmlType="submit" style={{ backgroundColor: '#024702', borderColor: '#024702' }}>
+                        Submit
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </motion.div>
+              </Col>
+            </Row>
+          </div>
         </div>
       </Content>
-      <Footer style={{ textAlign: 'center' }}>Gas Station Management ©2024</Footer>
     </Layout>
   );
 };

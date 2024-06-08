@@ -12,6 +12,7 @@ const ProductManagement = () => {
 
     useEffect(() => {
         fetchStations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchStations = async () => {
@@ -63,12 +64,14 @@ const ProductManagement = () => {
                 message.success('Product updated successfully');
             } else {
                 await createProduct({ ...values, station: selectedStation.id });
+                
                 message.success('Product created successfully');
             }
             fetchProductsForStation(selectedStation.id);
             setIsModalVisible(false);
             form.resetFields();
         } catch (error) {
+            console.log(setSelectedStation.id)
             message.error('Failed to save product');
         }
     };

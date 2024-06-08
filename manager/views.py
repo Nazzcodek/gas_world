@@ -1,5 +1,4 @@
 from django.core.cache import cache
-from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.permissions import OR
 from rest_framework.decorators import action
@@ -13,6 +12,7 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework.exceptions import PermissionDenied
 from product.models import Pump
 from station_attendant.models import Attendant
+from service.token_utils import set_tokens_and_response
 
 
 class ManagerViewSet(viewsets.ModelViewSet):
@@ -48,6 +48,15 @@ class ManagerViewSet(viewsets.ModelViewSet):
             return Response({"success": "Password updated successfully"}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    @action(detail=False, methods=['get'])
+    def by_station(self, request, station_id=None):
+        manager = self.get_queryset().filter(station=station_id).first()
+        if manager:
+            serializer = self.get_serializer(manager)
+            return Response(serializer.data)
+        else:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
     def handle_exception(self, exc):
         if isinstance(exc, PermissionDenied):
@@ -69,9 +78,8 @@ class ManagerLoginView(TokenObtainPairView):
         
         # Retrieve the authenticated user
         user = serializer.validated_data['user']
-        name = user.name
 
-        if user.is_manger:
+        if user.is_manager:
             refresh = RefreshToken.for_user(user)
             # Store both is_manager status and station_id in Redis with unique keys
             cache.set(f"is_manager_{user.id}", user.is_manager, timeout=3600)
@@ -87,23 +95,8 @@ class ManagerLoginView(TokenObtainPairView):
             for pump in pumps:
                 cache.set(f"manager_{user.id}_pump_{pump['id']}", pump['name'], timeout=3600)
 
-            response = HttpResponse()
-
-            response.set_cookie(
-                'access', 
-                str(refresh.access_token), 
-                httponly=True, 
-                secure=False,  # Only set this if you're using HTTPS
-                samesite='Lax'
-            )
-
-            response = Response({
-                'name': name,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-
-            return response
+            return set_tokens_and_response(request, user, refresh)
+            
         else:
             return Response({
                 "detail": "User is not a manager."

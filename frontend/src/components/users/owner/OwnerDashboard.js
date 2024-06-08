@@ -1,17 +1,21 @@
 // import React, { useState } from 'react'
 import CustomLayout from '../../DashboardComponent'
-import StationManagement from './Station'
-import ManagerManagement from './Manager';
+import StationManagement from './Stations'
+import ManagerManagement from './Managers';
 import ProductManagement from './Products'
-import PumpManagement from './Pump';
+import PumpManagement from './Pumps';
+import PitManagement from './Pits';
+import SalesReport from './SalesReport';
 
 const OwnerDashboard = () => {
   const components = {
     Analytics: <div>Analytics</div>,
-    Station: <StationManagement />,
-    Manager: <ManagerManagement />,
+    Stations: <StationManagement />,
+    Managers: <ManagerManagement />,
     Products: <ProductManagement />,
     Pumps: <PumpManagement />,
+    Pits: <PitManagement />,
+    'Sales Report': <SalesReport />,
 
   };
   

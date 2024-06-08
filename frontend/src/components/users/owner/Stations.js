@@ -179,7 +179,7 @@ const StationManagement = () => {
             >
                 {selectedStation && (
                     <>
-                        <Descriptions title="Basic Information" bordered>
+                        <Descriptions title="Basic Information" bordered column={2}>
                             <Descriptions.Item label="Name">{selectedStation.name}</Descriptions.Item>
                             <Descriptions.Item label="Address">{selectedStation.address}</Descriptions.Item>
                             <Descriptions.Item label="Phone">{selectedStation.phone}</Descriptions.Item>

@@ -1,8 +1,6 @@
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 from rest_framework import status, generics, permissions
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from owner.models import Owner
@@ -11,7 +9,7 @@ from owner.permissions import IsAuthenticatedOwner
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from station.models import Station
-from django.middleware.csrf import get_token
+from service.token_utils import set_tokens_and_response
 
 
 class OwnerCreateView(generics.CreateAPIView):
@@ -35,7 +33,6 @@ class LoginView(TokenObtainPairView):
         
         # Retrieve the authenticated user
         user = serializer.validated_data['user']
-        name = user.name
 
         if user.is_owner:
             refresh = RefreshToken.for_user(user)
@@ -46,25 +43,8 @@ class LoginView(TokenObtainPairView):
             for station in stations:
                 cache.set(f"owner_{user.id}_station_{station['id']}", station['name'], timeout=3600)
 
-            response = HttpResponse()
-
-            response.set_cookie(
-                'access', 
-                str(refresh.access_token), 
-                httponly=True, 
-                secure=False,  # Only set this if you're using HTTPS
-                samesite='Lax'
-            )
-
-            response.set_cookie('csrftoken', get_token(request))
-
-            response = Response({
-                'name': name,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-
-            return response
+            return set_tokens_and_response(request, user, refresh)
+        
         else:
             return Response({
                 "detail": "User is not an owner."

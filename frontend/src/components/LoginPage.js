@@ -1,17 +1,21 @@
-// src/components/LoginPage.js
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 import { login } from '../Routes';
 import './LoginPage.css';
-import { Form, Input, Button, Radio } from 'antd';
+import { Form, Input, Button, Radio, Layout } from 'antd';
+import NavBar from './home/NavBar';
+
+const { Header } = Layout;
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('owner');
-
+    const { login: authLogin } = useAuth();
     const navigate = useNavigate();
+
     const handleLogin = async () => {
         try {
             const routeMap = {
@@ -20,15 +24,21 @@ const LoginPage = () => {
                 attendant: login.attendantLogin,
             };
             const data = await routeMap[role](email, password);
-            console.log('Login successful:');
     
-            // Set token in cookies
             Cookies.set('access', data.access, { expires: 1, secure: false, sameSite: 'Lax' });
             Cookies.set('csrftoken', data.csrftoken, {expires: 1, secure: false, sameSite: 'Lax'});
+            Cookies.set('refresh', data.refresh, { expires: 7, secure: false, sameSite: 'Lax' });
     
-            localStorage.setItem('name', data.name);
-            // Navigate to the dashboard of the logged-in user
-            navigate(`/${role}/dashboard`);
+            const userData = {
+                id: data.id,
+                role,
+                stations: data.stations || [],
+                stationId: data.station_id || null,
+                name: data.name,
+            };
+            console.log(userData)
+            authLogin(userData);
+            navigate(`/${role}/${data.id}/dashboard`);
         } catch (error) {
             console.error("Login failed", error);
         }
@@ -36,7 +46,10 @@ const LoginPage = () => {
 
     return (
         <>
-            <h1 style={{ marginLeft: '40px', color: '#024702' }}>Welcome to Gas World</h1>
+            <Header style={{ backgroundColor: 'white' }}>
+                <NavBar />
+            </Header>
+            <h2 style={{ marginLeft: '40px', marginBottom: '0', marginTop: '50px', color: '#024702' }}>Welcome Back, Login To Your User Account</h2>
             <div className="login-container">
                 <div className="login-form">
                     <div className="centered-content">
@@ -50,10 +63,11 @@ const LoginPage = () => {
                     <Form onFinish={handleLogin}>
                         <Form.Item label="Email" name="email">
                             <Input
+                                className='input-box'
+                                style={{ width: '260px' }}
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className='input-box'
                             />
                         </Form.Item>
                         <Form.Item label="Password" name="password">

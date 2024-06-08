@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'manager',
     'station_attendant',
     'product',
+    'pit',
+    'service',
+    'sales',
 
     # Third party app
     'rest_framework',

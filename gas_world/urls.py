@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from .backends import LogoutView
+from .backends import LogoutView, CustomTokenRefreshView
 from django.views.generic import TemplateView
 
 urlpatterns = [
@@ -26,8 +26,10 @@ urlpatterns = [
     path('api/v1/', include('manager.urls')),
     path('api/v1/', include('station_attendant.urls')),
     path('api/v1/', include('product.urls')),
+    path('api/v1/', include('pit.urls')),
+    path('api/v1/', include('sales.urls')),
+    path('api/v1/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/logout', LogoutView.as_view(), name='logout'),
-
     # Catch-all route to serve your index.html file
     re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
 ]

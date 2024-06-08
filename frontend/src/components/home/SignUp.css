@@ -1,0 +1,55 @@
+  .site-layout-content {
+    background: #fff;
+    padding: 24px;
+    min-height: 280px;
+  }
+  
+  .form-section {
+    padding: 50px 0;
+  }
+  
+  .animated-image {
+    width: 100%;
+    max-width: 450px; /* Adjust the max-width to control the size */
+    height: auto;
+    margin-top: 20px;
+  }
+  
+  .extra-content {
+    padding: 20px 0;
+    text-align: center; /* Center the content */
+  }
+  
+  .form-section .ant-typography-title {
+    color: #024702 !important;
+  }
+  
+  .form-section .ant-form-item {
+    margin-bottom: 20px;
+  }
+  
+  .form-section .ant-btn-primary {
+    background-color: #024702 !important;
+    border-color: #024702 !important;
+  }
+
+  .layout {
+    background: #fff;
+  }
+  
+  .header {
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .custom-input .ant-input {
+  border-color: #024702;
+}
+
+.custom-input .ant-input:hover,
+.custom-input .ant-input:focus {
+  border-color: #024702;
+  box-shadow: 0 0 0 2px rgba(2, 71, 2, 0.2);
+}
+  
+ 

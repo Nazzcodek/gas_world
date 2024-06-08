@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Button, Modal, Form, Input, InputNumber, message, Select, Descriptions } from 'antd';
-import moment from 'moment'; // Import moment for date formatting
+import moment from 'moment';
 import {
     getStations,
     createPump,
     updatePump,
     deletePump,
     getPumpsByStation,
-    getProductByStation
+    getProductByStation,
+    getPitsByStation
 } from '../../../Routes';
 
 const PumpManagement = () => {
@@ -15,6 +16,7 @@ const PumpManagement = () => {
     const [selectedStation, setSelectedStation] = useState(null);
     const [pumps, setPumps] = useState([]);
     const [products, setProducts] = useState([]);
+    const [pits, setPits] = useState([]);
     const [selectedPump, setSelectedPump] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
@@ -22,6 +24,13 @@ const PumpManagement = () => {
     useEffect(() => {
         fetchStations();
     }, []);
+
+    useEffect(() => {
+        if (stations.length > 0) {
+            handleStationSelect(stations[0].id);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stations]);
 
     const fetchStations = async () => {
         try {
@@ -31,10 +40,6 @@ const PumpManagement = () => {
             message.error('Failed to fetch stations');
         }
     };
-
-    useEffect(() => {
-        console.log('Products:', products); // Log products for debugging
-    }, [products]);
 
     const fetchPumps = async (stationId) => {
         try {
@@ -48,19 +53,27 @@ const PumpManagement = () => {
     const fetchProducts = async (stationId) => {
         try {
             const data = await getProductByStation(stationId);
-            console.log('Fetched products:', data); // Log fetched products
             setProducts(data);
         } catch (error) {
             message.error('Failed to fetch products');
         }
     };
 
+    const fetchPits = async (stationId) => {
+        try {
+            const data = await getPitsByStation(stationId);
+            setPits(data);
+        } catch (error) {
+            message.error('Failed to fetch pits');
+        }
+    };
+
     const handleStationSelect = (stationId) => {
         const selected = stations.find(station => station.id === stationId);
-        console.log(selected);
         setSelectedStation(selected);
         fetchPumps(stationId);
         fetchProducts(stationId);
+        fetchPits(stationId);
     };
 
     const handleEdit = (pump) => {
@@ -68,31 +81,35 @@ const PumpManagement = () => {
         form.setFieldsValue({
             name: pump.name,
             initial_meter: pump.initial_meter,
-            product: pump.product_type, // Using product name for display
+            product_type: pump.product_type,
+            pump_pit: pump.pump_pit,
         });
         setIsModalVisible(true);
     };
 
     const handleCreateOrUpdatePump = async (values) => {
-        console.log('Form values:', values); // Logging form values for debugging
-        console.log('Available products:', products); // Log the available products
+        const selectedProduct = products.find(product => product.id === values.product_type);
+        const selectedPit = pits.find(pit => pit.id === values.pump_pit);
 
-        const selectedProduct = products.find(product => product.name === values.product_type);
-        
         if (!selectedProduct) {
             message.error('Selected product not found');
             return;
         }
 
-        const productId = selectedProduct.id; // Ensure we're sending the product ID
+        if (!selectedPit) {
+            message.error('Selected pit not found');
+            return;
+        }
+
+        const productId = selectedProduct.id;
+        const pitId = selectedPit.id;
         const payload = { 
             ...values, 
             initial_meter: parseFloat(values.initial_meter), 
             product_type: productId, 
-            station: selectedStation.id // Ensure we're sending the station ID
+            pump_pit: pitId,
+            station: selectedStation.id 
         };
-
-        console.log('Payload:', payload); // Logging payload for debugging
 
         try {
             if (selectedPump) {
@@ -106,7 +123,6 @@ const PumpManagement = () => {
             setIsModalVisible(false);
             form.resetFields();
         } catch (error) {
-            console.error('Failed to save pump:', error); // Log the error for debugging
             message.error('Failed to save pump');
         }
     };
@@ -131,45 +147,56 @@ const PumpManagement = () => {
     };
 
     const renderPumpInfo = (pump) => (
-        <Descriptions title="Pump Info" bordered>
+        <Descriptions style={{ marginBottom: 16 }} title="Pump Info" bordered column={2}>
             <Descriptions.Item label="Name">{pump.name}</Descriptions.Item>
             <Descriptions.Item label="Initial Meter">{pump.initial_meter}</Descriptions.Item>
-            <Descriptions.Item label="Product">{pump.product_type.name}</Descriptions.Item>
+            <Descriptions.Item label="Product">{pump.product_name}</Descriptions.Item>
+            <Descriptions.Item label="Pit">{pump.pit_name}</Descriptions.Item>
             <Descriptions.Item label="Created At">{moment(pump.created_at).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
-            {/* <Descriptions.Item label="Updated At">{pump.updated_at}</Descriptions.Item> */}
         </Descriptions>
     );
+
+    const stationTabs = stations.map(station => ({
+        label: station.name,
+        key: station.id,
+        children: (
+            <div>
+                <div style={{ marginBottom: 16 }}>
+                    <Button type="primary" onClick={() => {
+                        setSelectedPump(null);
+                        setIsModalVisible(true);
+                    }}>
+                        Add Pump
+                    </Button>
+                </div>
+                <Tabs tabPosition="top" items={pumps.map(pump => ({
+                    label: pump.name,
+                    key: pump.id,
+                    children: (
+                        <div>
+                            {renderPumpInfo(pump)}
+                            <Button type="primary" onClick={() => handleEdit(pump)}>Edit</Button>
+                            <Button type="danger" onClick={() => handleDelete(pump.id)} style={{ marginLeft: 8 }}>Delete</Button>
+                        </div>
+                    ),
+                }))} />
+            </div>
+        ),
+    }));
 
     return (
         <div>
             <h1>Pump Management</h1>
-            <Tabs tabPosition="left" onChange={handleStationSelect}>
-                {stations.map(station => (
-                    <Tabs.TabPane tab={station.name} key={station.id}>
-                        <div style={{ marginBottom: 16 }}>
-                            <Button type="primary" onClick={() => {
-                                setSelectedPump(null); // Clear selected pump when adding new
-                                setIsModalVisible(true);
-                            }}>
-                                Add Pump
-                            </Button>
-                        </div>
-                        <Tabs tabPosition="top">
-                            {pumps.map(pump => (
-                                <Tabs.TabPane tab={pump.name} key={pump.id}>
-                                    {renderPumpInfo(pump)}
-                                    <Button type="primary" onClick={() => handleEdit(pump)}>Edit</Button>
-                                    <Button type="danger" onClick={() => handleDelete(pump.id)} style={{ marginLeft: 8 }}>Delete</Button>
-                                </Tabs.TabPane>
-                            ))}
-                        </Tabs>
-                    </Tabs.TabPane>
-                ))}
-            </Tabs>
+            <Tabs 
+                tabPosition="left" 
+                defaultActiveKey={stations.length > 0 ? stations[0].id.toString() : null} 
+                onChange={handleStationSelect}
+                items={stationTabs}
+            />
 
             <Modal
                 title={selectedPump ? "Edit Pump" : "Add Pump"}
-                visible={isModalVisible}
+                open={isModalVisible}
                 onCancel={() => {
                     setIsModalVisible(false);
                     form.resetFields();
@@ -186,7 +213,14 @@ const PumpManagement = () => {
                     <Form.Item name="product_type" label="Product" rules={[{ required: true, message: 'Please select a product!' }]}>
                         <Select>
                             {products.map(product => (
-                                <Select.Option key={product.id} value={product.name}>{product.name}</Select.Option>
+                                <Select.Option key={product.id} value={product.id}>{product.name}</Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="pump_pit" label="Pit" rules={[{ required: true, message: 'Please select a pit!' }]}>
+                        <Select>
+                            {pits.map(pit => (
+                                <Select.Option key={pit.id} value={pit.id}>{pit.name}</Select.Option>
                             ))}
                         </Select>
                     </Form.Item>
