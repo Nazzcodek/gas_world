@@ -10,11 +10,24 @@ class SalesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sales
-        fields = ['id', 'pump_reading_name', 'attendant_name', 'cash', 'transfer', 'pos', 'expenses', 'shortage_or_excess', 'timestamp', 'is_active', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'pump_reading_name',
+            'attendant_name',
+            'cash',
+            'transfer',
+            'pos',
+            'expenses',
+            'shortage_or_excess',
+            'timestamp',
+            'is_active',
+            'created_at',
+            'updated_at'
+            ]
 
     def get_attendant_name(self, obj):
         return obj.attendant.name if obj.attendant else None
-    
+
     def get_pump_reading_name(self, obj):
         try:
             pump_reading = PumpReading.objects.get(id=obj.pump_reading_id)

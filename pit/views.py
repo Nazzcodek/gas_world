@@ -5,9 +5,7 @@ from product.models import Pump
 from .serializers import PitSerializer, PitReadingSerializer
 from owner.permissions import IsStationOwner, IsAuthenticatedManager
 from django.core.cache import cache
-import logging
 
-logger = logging.getLogger(__name__)
 
 class PitViewSet(viewsets.ModelViewSet):
     queryset = Pit.objects.all()
@@ -23,7 +21,8 @@ class PitViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         try:
-            return [permission() for permission in self.permission_classes_by_action[self.action]]
+            permission_classes = self.permission_classes_by_action[self.action]
+            return [permission() for permission in permission_classes]
         except KeyError:
             return [permissions.IsAuthenticated()]
 
@@ -39,16 +38,14 @@ class PitViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(pits, many=True)
             return Response(serializer.data)
         except Exception as e:
-            print(str(e)) 
             return Response({"error": "Error fetching Pits"}, status=500)
-            
+
     def by_product(self, request, product_id=None):
         try:
             pits = Pit.objects.filter(pit_product__id=product_id)
             serializer = self.get_serializer(pits, many=True)
             return Response(serializer.data)
         except Exception as e:
-            print(str(e)) 
             return Response({"error": "Error fetching Pits"}, status=500)
 
 
@@ -66,7 +63,8 @@ class PitReadingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         try:
-            return [permission() for permission in self.permission_classes_by_action[self.action]]
+            permission_classes = self.permission_classes_by_action[self.action]
+            return [permission() for permission in permission_classes]
         except KeyError:
             return [permissions.IsAuthenticated()]
 
@@ -79,7 +77,7 @@ class PitReadingViewSet(viewsets.ModelViewSet):
         if pit is None:
             try:
                 pit = Pit.objects.get(id=pit_id)
-                cache.set(f"pit_{pit_id}", pit, timeout=3600)  # Cache for 1 hour
+                cache.set(f"pit_{pit_id}", pit, timeout=3600)
             except Pit.DoesNotExist:
                 raise serializers.ValidationError("Pit ID not found.")
 
@@ -95,27 +93,30 @@ class PitReadingViewSet(viewsets.ModelViewSet):
             if pit is None:
                 try:
                     pit = Pit.objects.get(id=pit_id)
-                    cache.set(f"pit_{pit_id}", pit, timeout=3600)  # Cache for 1 hour
+                    cache.set(f"pit_{pit_id}", pit, timeout=3600)
                 except Pit.DoesNotExist:
                     raise serializers.ValidationError("Pit ID not found.")
 
             instance.actual_closing_stock = actual_closing_stock
             instance.save()
         else:
-            raise serializers.ValidationError("Actual closing stock must be provided for update.")
+            raise serializers.ValidationError(
+                "Actual closing stock must be provided for update."
+                )
 
         serializer.save()
 
     def by_station(self, request, station_id=None):
         try:
-            pit_readings = PitReading.objects.filter(reading_pit__station__id=station_id)
+            pit_readings = PitReading.objects.filter(
+                reading_pit__station__id=station_id
+                )
             serializer = self.get_serializer(pit_readings, many=True)
             return Response(serializer.data)
         except Exception as e:
             return Response({"error": "Error fetching pits"}, status=500)
 
     def by_pit(self, request, pit_id=None):
-        logger.info(f"Fetching pit readings for pit ID: {pit_id}")
         try:
             pit_readings = PitReading.objects.filter(reading_pit__id=pit_id)
             serializer = self.get_serializer(pit_readings, many=True)
@@ -132,5 +133,7 @@ class PitReadingViewSet(viewsets.ModelViewSet):
         except Pump.DoesNotExist:
             return Response({"error": "Pump not found"}, status=404)
         except Exception as e:
-            logger.error(f"Error fetching pit readings for pump {pump_id}: {e}", exc_info=True)
-            return Response({"error": "Error fetching pit readings"}, status=500)
+            return Response(
+                {"error": "Error fetching pit readings"},
+                status=500
+                )

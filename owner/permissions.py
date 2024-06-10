@@ -9,6 +9,7 @@ from product.models import Product, Pump, PumpReading
 from pit.models import Pit, PitReading
 from sales.models import Sales
 
+
 class IsAuthenticatedOwner(permissions.BasePermission):
     """
     Allows access only to authenticated owners (those who can create stations).
@@ -24,15 +25,16 @@ class IsAuthenticatedOwner(permissions.BasePermission):
 
         if is_owner is None:
             # Cache miss: Fetch from the database and store in cache
-            is_owner = request.user.is_owner  # Assuming you have an 'is_owner' field on your Owner model
-            cache.set(is_owner_cache_key, is_owner, timeout=3600)  # Cache for 1 hour (adjust as needed)
+            is_owner = request.user.is_owner
+            cache.set(is_owner_cache_key, is_owner, timeout=3600)
 
         return is_owner
 
 
 class IsStationOwner(permissions.BasePermission):
     """
-    Allows access only if the user is the owner of the station associated with the object (Station or Manager).
+    Allows access only if the user is the owner of the station
+    associated with the object (Station or Manager).
     """
     def has_object_permission(self, request, view, obj):
         if not request.user.is_authenticated:
@@ -86,10 +88,12 @@ class IsAuthenticatedManager(permissions.BasePermission):
         try:
             manager = Manager.objects.get(pk=request.user.pk)
         except Manager.DoesNotExist:
-            return False  # User is not a manager
+            return False
 
         # Determine the station associated with the object
         station = None
+        if isinstance(obj, Manager):
+            station = obj.station
         if isinstance(obj, Product):
             station = obj.station
         elif isinstance(obj, Pump):
@@ -114,13 +118,19 @@ class IsAuthenticatedManager(permissions.BasePermission):
 
         if manager_station_id is None:
             manager_station_id = manager.station_id
-            cache.set(manager_station_cache_key, manager_station_id, timeout=3600)
+            cache.set(
+                manager_station_cache_key,
+                manager_station_id,
+                timeout=3600
+                )
 
         return station.id == manager_station_id
 
 
 class IsAuthenticatedAttendant(permissions.BasePermission):
-    """Allows access only to authenticated attendants of the current station."""
+    """
+    Allows access only to authenticatedattendants of the current station.
+    """
 
     def has_permission(self, request, view):
         return request.user.is_authenticated
@@ -131,7 +141,6 @@ class IsAuthenticatedAttendant(permissions.BasePermission):
         is_attendant = cache.get(is_attendant_cache_key)
 
         if is_attendant is None:
-            # Cache miss: Fetch from the database and store in cache
             is_attendant = Attendant.objects.filter(pk=user.pk).exists()
             cache.set(is_attendant_cache_key, is_attendant, timeout=3600)
 
@@ -147,9 +156,12 @@ class IsAuthenticatedAttendant(permissions.BasePermission):
             try:
                 attendant = Attendant.objects.get(pk=user.pk)
                 attendant_station_id = attendant.station_id
-                cache.set(attendant_station_cache_key, attendant_station_id, timeout=3600)
+                cache.set(
+                    attendant_station_cache_key,
+                    attendant_station_id,
+                    timeout=3600
+                    )
             except Attendant.DoesNotExist:
-                # Handle the case where the user is not an attendant
                 return None
 
         return attendant_station_id
@@ -164,6 +176,8 @@ class IsAuthenticatedAttendant(permissions.BasePermission):
         station = None
         if isinstance(obj, PumpReading):
             station = obj.pump.station
+        elif isinstance(obj, Attendant):
+            station = obj.station
         elif isinstance(obj, Sales):
             station = obj.station
         elif hasattr(obj, 'station'):
@@ -174,13 +188,15 @@ class IsAuthenticatedAttendant(permissions.BasePermission):
 
         attendant_station_id = self.get_user_station_id(request.user)
         return attendant_station_id == station.id
-    
-    
+
+
 class IsOwnerOrManagerOfStation(permissions.BasePermission):
     def has_permission(self, request, view):
         station_id = request.data.get('station')
         if hasattr(request.user, 'owner'):
-            station_name = cache.get(f"owner_{request.user.id}_station_{station_id}")
+            station_name = cache.get(
+                f"owner_{request.user.id}_station_{station_id}"
+                )
             if not station_name:
                 return False
             station = Station.objects.get(id=station_id, owner=request.user)

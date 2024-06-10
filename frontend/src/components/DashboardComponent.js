@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Button, Dropdown, theme, message } from 'antd';
 import {
   UserOutlined,
@@ -18,12 +18,15 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../Routes';
+import Profile from '../components/home/Profile';
 import './DashboardComponent.css';
 
 const { Header, Sider, Content } = Layout;
 
 const CustomLayout = ({ role, children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [showProfile, setShowProfile] = useState(JSON.parse(localStorage.getItem('showProfile')) || false);
+  const [selectedSider, setSelectedSider] = useState(localStorage.getItem('selectedSider') || 'Analytics');
   const navigate = useNavigate();
 
   const name = localStorage.getItem('name');
@@ -52,50 +55,67 @@ const CustomLayout = ({ role, children }) => {
     'Sales Report': <TableOutlined />,
   };
 
-  const items = menuItems[role].map((item, index) => ({
-    key: index + 1,
-    label: item,
-    icon: icons[item],
-  }));
+  const items = [
+    ...menuItems[role].map((item, index) => ({
+      key: index + 1,
+      label: item,
+      icon: icons[item],
+    })),
+    {
+      key: 'profile',
+      label: 'Profile',
+      icon: <ProfileOutlined />,
+    },
+  ];
 
-  const [selectedSider, setSelectedSider] = useState(localStorage.getItem('selectedSider') || items[0].label);
+  useEffect(() => {
+    localStorage.setItem('selectedSider', selectedSider);
+  }, [selectedSider]);
 
-  const handleMenuClick = e => {
-    const clickedItem = items.find(item => item.key === Number(e.key));
-    localStorage.setItem('selectedSider', clickedItem.label);
-    setSelectedSider(clickedItem.label);
+  useEffect(() => {
+    localStorage.setItem('showProfile', JSON.stringify(showProfile));
+  }, [showProfile]);
+
+  const handleMenuClick = (e) => {
+    const clickedItem = items.find((item) => item.key === Number(e.key));
+    if (clickedItem) {
+      if (clickedItem.label === 'Profile') {
+        setShowProfile(true);
+        localStorage.setItem('showProfile', 'true');
+      } else {
+        setShowProfile(false);
+        setSelectedSider(clickedItem.label);
+        localStorage.setItem('showProfile', 'false');
+        localStorage.setItem('selectedSider', clickedItem.label);
+      }
+    }
   };
 
-  const selectedKey = items.find(item => item.label === selectedSider).key;
+  const selectedKey = items.find((item) => item.label === (showProfile ? 'Profile' : selectedSider))?.key.toString();
 
   const handleLogout = async () => {
     try {
-        // Call the API to log out the user
-        await logout();
-        
-        // Clear localStorage
-        localStorage.clear();
-
-        // Clear cookies
-        document.cookie.split(";").forEach((c) => {
-            document.cookie = c.trim().startsWith("expires=") ? c : `${c.split("=")[0]}=;expires=${new Date().toUTCString()};path=/`;
-        });
-
-        // Redirect to login page
-        navigate('/login');
+      await logout();
+      localStorage.clear();
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c.trim().startsWith('expires=') ? c : `${c.split('=')[0]}=;expires=${new Date().toUTCString()};path=/`;
+      });
+      navigate('/login');
     } catch (error) {
-        console.error('Logout failed:', error);
-        message.error('Failed to log out. Please try again.');
+      console.error('Logout failed:', error);
+      message.error('Failed to log out. Please try again.');
     }
-};
-
+  };
 
   const profileItems = [
     {
       key: 'profile',
       label: 'Profile',
       icon: <ProfileOutlined />,
-      onClick: () => navigate('/profile'),
+      onClick: () => {
+        setShowProfile(true);
+        localStorage.setItem('showProfile', 'true');
+      },
     },
     {
       key: 'logout',
@@ -106,19 +126,13 @@ const CustomLayout = ({ role, children }) => {
   ];
 
   const profileMenu = (
-    <Menu
-      items={profileItems}
-      className='profle-menu'
-      style={{ 
-        width: 150,
-        // marginTop: '20px',
-      }} />
+    <Menu items={profileItems} className='profile-menu' style={{ width: 150 }} />
   );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ padding: 0, background: colorBgContainer }}>
-          <img className="logo" src='/gas_world_02.png' alt='Gas World Logo'/>
+        <img className="logo" src='/gas_world_02.png' alt='Gas World Logo' />
         <Button
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -127,7 +141,7 @@ const CustomLayout = ({ role, children }) => {
             fontSize: '16px',
             width: 64,
             height: 64,
-            color: '#024702'
+            color: '#024702',
           }}
         />
         <Button
@@ -137,7 +151,7 @@ const CustomLayout = ({ role, children }) => {
           style={{
             fontSize: '16px',
             marginLeft: '20px',
-            color: '#024702'
+            color: '#024702',
           }}
         />
         <span style={{ marginLeft: '50px', fontWeight: 'bold', fontSize: '20px', color: '#024702' }}>{role.toUpperCase()} / {selectedSider}</span>
@@ -152,27 +166,27 @@ const CustomLayout = ({ role, children }) => {
         </div>
       </Header>
       <Layout>
-        <Sider
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-          className='sider'>
+        <Sider trigger={null} collapsible collapsed={collapsed} className='sider'>
           <Menu
             mode="inline"
-            defaultSelectedKeys={[selectedKey.toString()]}
+            selectedKeys={[selectedKey]}
             className="sider-menu"
             items={items}
             onClick={handleMenuClick}
           />
         </Sider>
-        <Content style={{
-          margin: '24px 16px 0',
-          padding: 24,
-          minHeight: 280,
-          background: colorBgContainer,
-          borderRadius: borderRadiusLG
-        }}>
-          <div style={{ padding: 24, minHeight: 360 }}>{children[selectedSider]}</div>
+        <Content
+          style={{
+            margin: '24px 16px 0',
+            padding: 24,
+            minHeight: 280,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+          }}
+        >
+          <div style={{ padding: 24, minHeight: 360 }}>
+            {showProfile ? <Profile /> : children[selectedSider]}
+          </div>
         </Content>
       </Layout>
     </Layout>

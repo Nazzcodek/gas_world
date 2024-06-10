@@ -6,20 +6,21 @@ from owner.models import Owner
 from manager.models import Manager
 from station_attendant.models import Attendant
 
+
 def set_tokens_and_response(request, user, refresh):
     response = HttpResponse()
     response.set_cookie(
         'access',
         str(refresh.access_token),
         httponly=True,
-        secure=False,  # Only set this if you're using HTTPS
+        secure=False,
         samesite='Lax'
     )
     response.set_cookie(
         'refresh',
         str(refresh),
         httponly=True,
-        secure=False,  # Only set this if you're using HTTPS
+        secure=False,
         samesite='Lax'
     )
     response.set_cookie('csrftoken', get_token(request))
@@ -51,5 +52,5 @@ def set_tokens_and_response(request, user, refresh):
         }
 
     response = Response(response_data, status=status.HTTP_200_OK)
-    
+
     return response

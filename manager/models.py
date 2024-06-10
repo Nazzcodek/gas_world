@@ -7,8 +7,8 @@ class Manager(User):
     this class create a manager instant for the station
     """
     station = models.OneToOneField(
-        'station.Station', 
-        on_delete=models.CASCADE, 
+        'station.Station',
+        on_delete=models.CASCADE,
         related_name='manager_station'
     )
     is_manager = models.BooleanField(default=True)

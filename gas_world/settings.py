@@ -29,7 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-APPEND_SLASH=False
+APPEND_SLASH = False
 
 # Application definition
 
@@ -128,8 +128,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = 'owner.User'
 
 AUTHENTICATION_BACKENDS = [
-    'gas_world.backends.CustomAuthBackend', # Replace 'your_app' with your app name
-    'django.contrib.auth.backends.ModelBackend'  # Keep the default backend as a fallback
+    'gas_world.backends.CustomAuthBackend',
+    'django.contrib.auth.backends.ModelBackend'
 ]
 
 # Internationalization
@@ -154,7 +154,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
- 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -200,7 +200,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-     'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
 }

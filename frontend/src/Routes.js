@@ -42,6 +42,40 @@ export const logout = async () => {
     }
 }
 
+export const updateUser = async (role, userId, data, stationId) => {
+    try {
+        let response;
+        const url = role === 'owner' ? `/${role}/${userId}` : `/${role}/${stationId}/${userId}`;
+        
+        response = await api.put(url, data);
+
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to update ${role} profile:`, error);
+        if (error.response) {
+            console.error('Server response:', error.response.data);
+        }
+        throw error;
+    }
+};
+
+export const getUser = async (role, userId, stationId) => {
+    try {
+        let response;
+        const url = role === 'owner' ? `/${role}/${userId}` : `/${role}/${stationId}/${userId}`;
+        
+        response = await api.get(url);
+        return response.data;
+
+    } catch (error) {
+        console.error(`Failed to get ${role} user`);
+        if (error.response) {
+            console.error('Server response:', error.response.data);
+        }
+        throw error;
+    }
+}
+
 export const createOwner = async (owner) => {
     try {
         const response = await api.post('/owner', owner);
@@ -133,12 +167,21 @@ export const updateManager = async (station_id, manager_id, manager) => {
 }
 
 export const changeManagerPassword = async (manager_id, manager) => {
-    console.log(manager, manager_id)
     try {
         const response = await api.put(`/manager/${manager_id}/change_password`, manager);
         return response.data;
       } catch (error) {
         console.error('Failed to change manager password:', error);
+        throw error;
+    }
+}
+
+export const changePassword = async (userId, role, data) => {
+    try {
+        const response = await api.put(`/${role}/${userId}/change_password`, data);
+        return response.data;
+      } catch (error) {
+        console.error(`Failed to change ${role} password:`, error);
         throw error;
     }
 }

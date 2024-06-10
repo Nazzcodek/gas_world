@@ -18,22 +18,22 @@ class CustomAuthBackend(ModelBackend):
     def authenticate(self, request, email=None, password=None, **kwargs):
         try:
             user = Owner.objects.get(email=email)
-            if user.check_password(password):  
-                return user  
+            if user.check_password(password):
+                return user
         except Owner.DoesNotExist:
             pass
 
         try:
             user = Manager.objects.get(email=email)
             if user.check_password(password):
-                return user  
+                return user
         except Manager.DoesNotExist:
             pass
 
         try:
             user = Attendant.objects.get(email=email)
             if user.check_password(password):
-                return user  
+                return user
         except Attendant.DoesNotExist:
             pass
 
@@ -53,14 +53,13 @@ class CookieTokenMiddleware:
             request.META['HTTP_X_CSRFTOKEN'] = csrftoken
         response = self.get_response(request)
         return response
-    
 
 
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         refresh_token = request.data.get('refresh')
-        
+
         if response.status_code == 200 and refresh_token:
             # Decode the refresh token to get the user
             refresh = RefreshToken(refresh_token)
@@ -69,9 +68,8 @@ class CustomTokenRefreshView(TokenRefreshView):
             user = User.objects.get(id=user_id)
             # Use the function to set cookies and return response
             return set_tokens_and_response(request, user, refresh)
-        
-        return response
 
+        return response
 
 
 class LogoutView(APIView):
@@ -96,7 +94,9 @@ class LogoutView(APIView):
             # Clear attendant and pump keys
             attendants = Attendant.objects.filter(station=user_id).values('id')
             for attendant in attendants:
-                keys_to_clear.append(f"manager_{user_id}_attendant_{attendant['id']}")
+                keys_to_clear.append(
+                    f"manager_{user_id}_attendant_{attendant['id']}"
+                    )
 
             pumps = Pump.objects.filter(station=user_id).values('id')
             for pump in pumps:
@@ -105,11 +105,19 @@ class LogoutView(APIView):
             # Clear owner station keys
             stations = Station.objects.filter(owner=user_id).values('id')
             for station in stations:
-                keys_to_clear.append(f"owner_{user_id}_station_{station['id']}")
+                keys_to_clear.append(
+                    f"owner_{user_id}_station_{station['id']}"
+                    )
 
             for key in keys_to_clear:
                 cache.delete(key)
 
-            return Response({"detail": "Logout successful"}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "Logout successful"},
+                status=status.HTTP_200_OK
+                )
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+                )

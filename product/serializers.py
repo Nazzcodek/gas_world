@@ -13,22 +13,34 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class PumpSerializer(serializers.ModelSerializer):
-    station = serializers.PrimaryKeyRelatedField(queryset=Station.objects.all())
-    product_type = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    station = serializers.PrimaryKeyRelatedField(
+        queryset=Station.objects.all())
+    product_type = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all())
     pump_pit = serializers.PrimaryKeyRelatedField(queryset=Pit.objects.all())
     product_name = serializers.SerializerMethodField()
     pit_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Pump
-        fields = ['id', 'name', 'station', 'product_type', 'product_name', 'initial_meter', 'pump_pit', 'pit_name', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'name',
+            'station',
+            'product_type',
+            'product_name',
+            'initial_meter',
+            'pump_pit',
+            'pit_name',
+            'created_at',
+            'updated_at'
+            ]
 
     def get_product_name(self, obj):
         return obj.product_type.name
 
     def get_pit_name(self, obj):
         return obj.pump_pit.name
-
 
 
 class PumpReadingSerializer(serializers.ModelSerializer):
@@ -67,7 +79,8 @@ class PumpReadingSerializer(serializers.ModelSerializer):
         rate = validated_data.get('rate')
 
         if rate is None:
-            last_reading = PumpReading.objects.filter(pump=pump).order_by('-timestamp').first()
+            pump_reading = PumpReading.objects.filter(pump=pump)
+            last_reading = pump_reading.order_by('-timestamp').first()
             if last_reading:
                 rate = last_reading.rate
             else:

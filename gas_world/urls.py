@@ -28,7 +28,9 @@ urlpatterns = [
     path('api/v1/', include('product.urls')),
     path('api/v1/', include('pit.urls')),
     path('api/v1/', include('sales.urls')),
-    path('api/v1/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/token/refresh/',
+         CustomTokenRefreshView.as_view(),
+         name='token_refresh'),
     path('api/v1/logout', LogoutView.as_view(), name='logout'),
     # Catch-all route to serve your index.html file
     re_path(r'^.*', TemplateView.as_view(template_name='index.html')),

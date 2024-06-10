@@ -78,6 +78,7 @@ const StationManagement = () => {
     const handleRowClick = async (record) => {
         try {
             const data = await getStationById(record.id);
+            console.log('Fetched station details:', data); // Add this line
             setSelectedStation(data);
             setIsDetailVisible(true);
         } catch (error) {

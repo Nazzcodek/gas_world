@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { login } from '../Routes';
 import './LoginPage.css';
-import { Form, Input, Button, Radio, Layout } from 'antd';
+import { Form, Input, Button, Radio, Layout, message } from 'antd';
 import NavBar from './home/NavBar';
 
 const { Header } = Layout;
@@ -36,11 +36,11 @@ const LoginPage = () => {
                 stationId: data.station_id || null,
                 name: data.name,
             };
-            console.log(userData)
             authLogin(userData);
             navigate(`/${role}/${data.id}/dashboard`);
         } catch (error) {
             console.error("Login failed", error);
+            message.error('Login failed. Please check your credentials and try again.');
         }
     };
 

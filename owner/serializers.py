@@ -52,11 +52,6 @@ class CreateOwnerSerializer(serializers.ModelSerializer):
         """
         Update an owner, hash the new password if it's being updated.
         """
-        # Check if the password is being updated
-        if 'password' in validated_data:
-            validated_data['password'] = make_password(validated_data['password'])
-
-        # Update the owner
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -64,10 +59,59 @@ class CreateOwnerSerializer(serializers.ModelSerializer):
         return instance
 
 
+class UpdatePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for updating the password of an instance.
+
+    Attributes:
+        password (str): The new password to be set for the instance.
+
+    Methods:
+        update(instance, validated_data):
+            Updates the password of the instance with the
+            provided validated data.
+    """
+    password = serializers.CharField(write_only=True)
+
+    def update(self, instance, validated_data):
+        """
+        Updates the password of the instance with
+        the provided validated data.
+
+        Args:
+            instance: The instance whose password needs to be updated.
+            validated_data: The validated data containing the new password.
+
+        Returns:
+            The updated instance with the new password.
+        """
+        instance.password = make_password(validated_data['password'])
+        instance.save()
+        return instance
+
+
 class TokenObtainPairSerializer(serializers.Serializer):
+    """
+    Serializer for obtaining a JSON web token pair.
+
+    This serializer takes in an email and password,
+    validates the credentials, and returns a JSON web token
+    pair (refresh token and access token) along with the user object.
+
+    Attributes:
+        email (str): The email of the user.
+        password (str): The password of the user.
+        model (None): The model associated with the user.
+
+    Methods:
+        validate(attrs): Validates the email and password,
+        and returns the JSON web token pair and user object.
+
+    """
+
     email = serializers.EmailField()
     password = serializers.CharField()
-    model = None  # This should be overridden by subclasses
+    model = None
 
     def validate(self, attrs):
         user = authenticate(
@@ -77,16 +121,13 @@ class TokenObtainPairSerializer(serializers.Serializer):
             )
         if not user:
             try:
-                # Try to get the user by email
                 self.model.objects.get(email=attrs['email'])
-                raise ValidationError({'password': ['Incorrect password.']})  
+                raise ValidationError({'password': ['Incorrect password.']})
             except self.model.DoesNotExist:
-                # If user doesn't exist, it's a wrong email
-                raise ValidationError({'email': ['No active account found with this email.']})
-        # if not user:
-        #     msg = {'detail': 'No active account found with the given credentials'}
-        #     raise serializers.ValidationError(msg)
-        
+                raise ValidationError(
+                    {'email': ['No active account found with this email.']}
+                    )
+
         refresh = RefreshToken.for_user(user)
         return {
             'refresh': str(refresh),
@@ -94,5 +135,9 @@ class TokenObtainPairSerializer(serializers.Serializer):
             'user': user,
         }
 
+
 class OwnerTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Serializer for obtaining a token pair for an owner.
+    """
     model = Owner

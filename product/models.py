@@ -6,21 +6,39 @@ from pit.models import PitReading
 from decimal import Decimal
 from django.db import transaction
 from django.core.exceptions import ValidationError
-# from pit.models import Pit
 
 
 class Product(BaseModel):
     name = models.CharField(max_length=50)
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='products')
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name='products'
+        )
     description = models.TextField()
 
 
 class Pump(BaseModel):
     name = models.CharField(max_length=50)
-    station = models.ForeignKey(Station, on_delete=models.CASCADE, related_name='pumps')
-    product_type = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='pumps')
-    initial_meter = models.DecimalField(max_digits=10, decimal_places=2)
-    pump_pit = models.ForeignKey('pit.Pit', on_delete=models.CASCADE, related_name='pumps')
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name='pumps'
+        )
+    product_type = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='pumps'
+        )
+    initial_meter = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+        )
+    pump_pit = models.ForeignKey(
+        'pit.Pit',
+        on_delete=models.CASCADE,
+        related_name='pumps'
+        )
 
 
 class PumpReading(BaseModel):
@@ -29,19 +47,45 @@ class PumpReading(BaseModel):
         ('PENDING', 'Pending'),
         ('COMPLETED', 'Completed'),
     ]
-    pump = models.ForeignKey(Pump, on_delete=models.CASCADE, related_name='readings')
-    attendant = models.ForeignKey('station_attendant.Attendant', on_delete=models.CASCADE)
-    opening_meter = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
-    closing_meter = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
-    rate = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
+    pump = models.ForeignKey(
+        Pump,
+        on_delete=models.CASCADE,
+        related_name='readings'
+        )
+    attendant = models.ForeignKey(
+        'station_attendant.Attendant',
+        on_delete=models.CASCADE
+        )
+    opening_meter = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=0.00
+        )
+    closing_meter = models.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        default=0.00
+        )
+    rate = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0.00
+        )
+    status = models.CharField(
+        max_length=15,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+        )
     timestamp = models.DateTimeField(auto_now_add=True)
 
     @transaction.atomic
     def save(self, *args, **kwargs):
         if self.opening_meter is None:
-            last_reading = PumpReading.objects.filter(pump=self.pump).order_by('-timestamp').first()
-            self.opening_meter = last_reading.closing_meter if last_reading else self.pump.initial_meter
+            pump_reading = PumpReading.objects.filter(pump=self.pump)
+            last_reading = pump_reading.order_by('-timestamp').first()
+            closing_meter = last_reading.closing_meter
+            initial = self.pump.initial_meter
+            self.opening_meter = closing_meter if last_reading else initial
         super().save(*args, **kwargs)
 
         if not hasattr(self, 'sales'):
@@ -73,4 +117,7 @@ class PumpReading(BaseModel):
     def create_pit_reading(self):
         reading_pit = self.pump.pump_pit
         opening_stock = self.pump.pump_pit.current_volume
-        PitReading.objects.create(reading_pit=reading_pit, opening_stock=opening_stock)
+        PitReading.objects.create(
+            reading_pit=reading_pit,
+            opening_stock=opening_stock
+            )

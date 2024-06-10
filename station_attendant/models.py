@@ -8,9 +8,9 @@ class Attendant(User):
     This class creates an attendant instance for the station.
     """
     station = models.ForeignKey(
-        Station, 
-        on_delete=models.CASCADE, 
-        related_name='attendants' 
+        Station,
+        on_delete=models.CASCADE,
+        related_name='attendants'
     )
     is_attendant = models.BooleanField(default=True)
 

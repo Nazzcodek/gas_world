@@ -9,6 +9,7 @@ import ManagerDashboard from './components/users/manager/ManagerDashboard'
 import AttendantDashboard from './components/users/attendant/AttendantDashboard'
 import LandingPage from './components/home/LandingPage'
 import SignUp from './components/home/SignUp';
+import Blog from './components/home/Blog';
 import './App.css';
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
                         <Route exact path="/" element={<LandingPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignUp />} />
+                        <Route path="/blog" element={<Blog />} />
                         <Route path="/owner/:userId/dashboard" element={<OwnerDashboard />} />
                         <Route path="/manager/:userId/dashboard" element={<ManagerDashboard />} />
                         <Route path="/attendant/:userId/dashboard/" element={<AttendantDashboard />} />
